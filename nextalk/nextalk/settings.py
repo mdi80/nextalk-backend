@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "users",
+    "knox",
 ]
 
 MIDDLEWARE = [
@@ -55,9 +56,7 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
-    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
 }
 
 
@@ -142,4 +141,15 @@ SMS_AUTH = {
     "ACCOUNT_SID": "AC076448db1aeca112e3bb338b73f6105d",
     "AUTH_TOKEN": "dd28bb7ea3ceb93596196d9e3fcdde99",
     "VERIFY_SID": "VA17090d404d0c670c12afa0ece9a3bdcc",
+}
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Change this to your Redis server address
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
 }
