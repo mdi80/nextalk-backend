@@ -153,3 +153,9 @@ CACHES = {
         },
     }
 }
+
+
+REST_KNOX = {
+    "TOKEN_TTL": None,
+    "TOKEN_LIMIT_PER_USER": 5,
+}
