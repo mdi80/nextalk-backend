@@ -5,16 +5,26 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 from django.core.validators import RegexValidator
+from django.core.cache import cache
+from knox.models import AuthToken
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, phone, password=None, **extra_fields):
-        if not phone:
+    def create_user(self, phone_key, password, **extra_fields):
+        if not phone_key:
             raise ValueError("The phone field must be set")
-        # phone = self.normalize_phone(phone)
+        if not password:
+            raise ValueError("The Password field must be set")
+
+        phone = cache.get("auth " + phone_key)
+        cache.delete("auth " + phone_key)
+        if phone is None:
+            raise ValueError("phone token is expired!")
+
         user = self.model(phone=phone, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+
         return user
 
     def create_superuser(self, phone, password=None, **extra_fields):
@@ -56,7 +66,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return f"{self.phone} {self.last_name}"
-
 
 
 # class UserToken(models.Model):

@@ -57,6 +57,7 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
 }
 
 
@@ -153,6 +154,8 @@ CACHES = {
         },
     }
 }
+
+CACHE_TTL_USER = 3600
 
 
 REST_KNOX = {

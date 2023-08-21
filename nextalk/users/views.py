@@ -9,30 +9,21 @@ from django.contrib.auth import login
 
 from django.shortcuts import render
 from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.views import obtain_auth_token
-from .serializers import AuthTokenSerializer
 from rest_framework.permissions import IsAuthenticated
 
 from knox.auth import TokenAuthentication
 from knox.views import LoginView as KnoxLoginView
 
+from .serializers import AuthTokenSerializer, UserSerializer
 from .verify import sendSms, checkSmsCode
 from .backend import PhoneBackend
 from .models import User
 from . import models
-
-
-def get_client_ip_address(request):
-    req_headers = request.META
-    x_forwarded_for_value = req_headers.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for_value:
-        ip_addr = x_forwarded_for_value.split(",")[-1].strip()
-    else:
-        ip_addr = req_headers.get("REMOTE_ADDR")
-    return ip_addr
 
 
 class LoginView(KnoxLoginView):
@@ -69,21 +60,38 @@ class CheckSms(APIView):
 
     def post(self, request):
         try:
+            print(request.body)
             body = json.loads(request.body)
             number = body["phone"]
-            code = int(body["code"])
+            code = body["code"]
 
             if checkSmsCode(number, code):
-                if User.objects.filter(phone=number).exists():
-                    pass
-                else:
-                    phone_key = binascii.hexlify(os.urandom(20)).decode()
-                    cache.set("auth " + phone_key, number, timeout=3600)
-                    return Response(data={"key": phone_key}, status=status.HTTP_200_OK)
+                isNew = not User.objects.filter(phone=number).exists()
+                phone_key = binascii.hexlify(os.urandom(20)).decode()
+                cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
+                return Response(
+                    data={
+                        "key": phone_key,
+                        "new": isNew,
+                    },
+                    status=status.HTTP_200_OK,
+                )
             else:
                 return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
-        except:
+        except Exception as e:
+            print(str(e))
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserViewSet(ModelViewSet):
+    permission_classes = [
+        AllowAny,
+    ]
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+    def create(self, request):
+        return super().create(request)
 
 
 class Test(APIView):
