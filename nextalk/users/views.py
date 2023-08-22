@@ -46,7 +46,10 @@ class SendSms(APIView):
         try:
             body = json.loads(request.body)
             number = body["phone"]
-            sendSms(number)
+            try:
+                sendSms(number)
+            except:
+                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
             print(str(e))
