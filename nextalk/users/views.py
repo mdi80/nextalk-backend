@@ -69,16 +69,31 @@ class CheckSms(APIView):
             code = body["code"]
 
             if checkSmsCode(number, code):
-                isNew = not User.objects.filter(phone=number).exists()
                 phone_key = binascii.hexlify(os.urandom(20)).decode()
                 cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
-                return Response(
-                    data={
-                        "key": phone_key,
-                        "new": isNew,
-                    },
-                    status=status.HTTP_200_OK,
-                )
+
+                if User.objects.filter(phone=number).exists():
+                    user = User.objects.filter(phone=number).first()
+                    first_name = user.first_name
+                    last_name = user.last_name
+
+                    return Response(
+                        data={
+                            "key": phone_key,
+                            "new": False,
+                            "first_name": first_name,
+                            "last_name": last_name,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
+                else:
+                    return Response(
+                        data={
+                            "key": phone_key,
+                            "new": True,
+                        },
+                        status=status.HTTP_200_OK,
+                    )
             else:
                 return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
         except Exception as e:
