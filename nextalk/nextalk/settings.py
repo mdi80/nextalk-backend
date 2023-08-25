@@ -161,4 +161,5 @@ CACHE_TTL_USER = 3600
 REST_KNOX = {
     "TOKEN_TTL": None,
     "TOKEN_LIMIT_PER_USER": 5,
+    "USER_SERIALIZER": "users.serializers.UserSerializer",
 }

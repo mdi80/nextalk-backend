@@ -1,33 +1,32 @@
 from django.db import models
 from django.contrib.auth.models import (
-    AbstractBaseUser,
     BaseUserManager,
+    # AbstractBaseUser
     PermissionsMixin,
 )
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import RegexValidator
 from django.core.cache import cache
 from knox.models import AuthToken
+import unicodedata
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, phone_key, password, **extra_fields):
+    def create_user(self, phone_key, **extra_fields):
+        print(phone_key)
         if not phone_key:
             raise ValueError("The phone field must be set")
-        if not password:
-            raise ValueError("The Password field must be set")
-
         phone = cache.get("auth " + phone_key)
-        cache.delete("auth " + phone_key)
         if phone is None:
             raise ValueError("phone token is expired!")
 
         user = self.model(phone=phone, **extra_fields)
-        user.set_password(password)
         user.save(using=self._db)
 
         return user
 
-    def create_superuser(self, phone, password=None, **extra_fields):
+    def create_superuser(self, phone, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
@@ -35,11 +34,74 @@ class CustomUserManager(BaseUserManager):
             raise ValueError("Superuser must have is_staff=True.")
         if extra_fields.get("is_superuser") is not True:
             raise ValueError("Superuser must have is_superuser=True.")
+        if not phone:
+            raise ValueError("The phone field must be set")
 
-        return self.create_user(phone, password, **extra_fields)
+        if phone is None:
+            raise ValueError("phone token is expired!")
+
+        user = self.model(phone=phone, **extra_fields)
+        user.save(using=self._db)
+
+        return user
 
 
-class User(AbstractBaseUser, PermissionsMixin):
+class CustomUserAbstract(models.Model):
+    last_login = models.DateTimeField(_("last login"), blank=True, null=True)
+
+    is_active = True
+
+    REQUIRED_FIELDS = []
+
+    class Meta:
+        abstract = True
+
+    def __str__(self):
+        return self.get_username()
+
+    def get_username(self):
+        """Return the username for this User."""
+        return getattr(self, self.USERNAME_FIELD)
+
+    def clean(self):
+        setattr(self, self.USERNAME_FIELD, self.normalize_username(self.get_username()))
+
+    def natural_key(self):
+        return (self.get_username(),)
+
+    @property
+    def is_anonymous(self):
+        """
+        Always return False. This is a way of comparing User objects to
+        anonymous users.
+        """
+        return False
+
+    @property
+    def is_authenticated(self):
+        """
+        Always return True. This is a way to tell if the user has been
+        authenticated in templates.
+        """
+        return True
+
+    @classmethod
+    def get_email_field_name(cls):
+        try:
+            return cls.EMAIL_FIELD
+        except AttributeError:
+            return "email"
+
+    @classmethod
+    def normalize_username(cls, username):
+        return (
+            unicodedata.normalize("NFKC", username)
+            if isinstance(username, str)
+            else username
+        )
+
+
+class User(CustomUserAbstract, PermissionsMixin):
     phone = models.CharField(
         max_length=17,
         primary_key=True,
@@ -50,6 +112,21 @@ class User(AbstractBaseUser, PermissionsMixin):
                 code="invalid_phone_number",
             )
         ],
+    )
+    userid_validator = UnicodeUsernameValidator()
+
+    userid = models.CharField(
+        _("userid"),
+        max_length=150,
+        unique=True,
+        help_text=_(
+            "Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only."
+        ),
+        validators=[userid_validator],
+        error_messages={
+            "unique": _("A user with that userid already exists."),
+        },
+        null=True,
     )
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
@@ -65,35 +142,4 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     def __str__(self):
-        return f"{self.phone} {self.last_name}"
-
-
-# class UserToken(models.Model):
-#     key = models.CharField(_("Key"), max_length=40, primary_key=True)
-#     user = models.OneToOneField(
-#         User, related_name='auth_token',
-#         on_delete=models.CASCADE, verbose_name=_("User")
-#     )
-#     created = models.DateTimeField(_("Created"), auto_now_add=True)
-
-#     class Meta:
-#         # Work around for a bug in Django:
-#         # https://code.djangoproject.com/ticket/19422
-#         #
-#         # Also see corresponding ticket:
-#         # https://github.com/encode/django-rest-framework/issues/705
-#         abstract = 'rest_framework.authtoken' not in settings.INSTALLED_APPS
-#         verbose_name = _("Token")
-#         verbose_name_plural = _("Tokens")
-
-#     def save(self, *args, **kwargs):
-#         if not self.key:
-#             self.key = self.generate_key()
-#         return super().save(*args, **kwargs)
-
-#     @classmethod
-#     def generate_key(cls):
-#         return binascii.hexlify(os.urandom(20)).decode()
-
-#     def __str__(self):
-#         return self.key
+        return f"{self.phone}"
