@@ -30,6 +30,7 @@ class LoginView(KnoxLoginView):
     permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
+        print(request.data)
         serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
@@ -46,10 +47,10 @@ class SendSms(APIView):
         try:
             body = json.loads(request.body)
             number = body["phone"]
-            try:
-                sendSms(number)
-            except:
-                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            # try:
+            #     # sendSms(number)
+            # except:
+            # return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
             print(str(e))
@@ -67,15 +68,18 @@ class CheckSms(APIView):
             number = body["phone"]
             code = body["code"]
 
-            if checkSmsCode(number, code):
+            if True:  # checkSmsCode(number, code):
                 phone_key = binascii.hexlify(os.urandom(20)).decode()
-                cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
+                # cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
+                models.PhoneTokenTempModel.objects.create(
+                    phone_key=phone_key, phone=number
+                )
                 data = {"key": phone_key}
                 if User.objects.filter(phone=number).exists():
                     user = User.objects.filter(phone=number).first()
                     data["new"] = False
-                    data["first_name"] = user.first_name
-                    data["last_name"] = user.last_name
+                    data["firstname"] = user.firstname
+                    data["lastname"] = user.lastname
                     if user.userid:
                         data["username"] = user.userid
 

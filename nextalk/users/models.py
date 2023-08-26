@@ -10,14 +10,15 @@ from django.core.validators import RegexValidator
 from django.core.cache import cache
 from knox.models import AuthToken
 import unicodedata
+from django.conf import settings
 
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, phone_key, **extra_fields):
-        print(phone_key)
         if not phone_key:
             raise ValueError("The phone field must be set")
-        phone = cache.get("auth " + phone_key)
+        # cache.get("auth " + phone_key)
+        phone = PhoneTokenTempModel.objects.get(phone_key=str(phone_key)).phone
         if phone is None:
             raise ValueError("phone token is expired!")
 
@@ -128,8 +129,8 @@ class User(CustomUserAbstract, PermissionsMixin):
         },
         null=True,
     )
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
+    firstname = models.CharField(max_length=30)
+    lastname = models.CharField(max_length=30)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
@@ -143,3 +144,8 @@ class User(CustomUserAbstract, PermissionsMixin):
 
     def __str__(self):
         return f"{self.phone}"
+
+
+class PhoneTokenTempModel(models.Model):
+    phone_key = models.CharField(max_length=40, primary_key=True)
+    phone = models.CharField(max_length=17)
