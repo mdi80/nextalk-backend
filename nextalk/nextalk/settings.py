@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
+# from . import run_celery
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,19 +27,25 @@ SECRET_KEY = "django-insecure-@5wsjrr&3uw(@kxpldp_8ik83n=wg87-=_o827mnb3im=t!jr4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "auth",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "users",
+    "chat",
+    "knox",
+    "channels",
 ]
 
 MIDDLEWARE = [
@@ -49,6 +57,12 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ("knox.auth.TokenAuthentication",),
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+}
+
 
 ROOT_URLCONF = "nextalk.urls"
 
@@ -69,6 +83,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "nextalk.wsgi.application"
+ASGI_APPLICATION = "nextalk.asgi.application"
 
 
 # Database
@@ -100,7 +115,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
@@ -112,6 +126,9 @@ USE_I18N = True
 
 USE_TZ = True
 
+AUTHENTICATION_BACKENDS = [
+    "users.backend.PhoneBackend",
+]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -122,3 +139,31 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+AUTH_USER_MODEL = "users.User"
+
+SMS_AUTH = {
+    "ACCOUNT_SID": "AC076448db1aeca112e3bb338b73f6105d",
+    "AUTH_TOKEN": "dd28bb7ea3ceb93596196d9e3fcdde99",
+    "VERIFY_SID": "VA17090d404d0c670c12afa0ece9a3bdcc",
+}
+
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1",  # Change this to your Redis server address
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+    }
+}
+
+CACHE_TTL_USER = 3600
+
+
+REST_KNOX = {
+    "TOKEN_TTL": None,
+    "TOKEN_LIMIT_PER_USER": 5,
+    "USER_SERIALIZER": "users.serializers.UserSerializer",
+}
