@@ -27,6 +27,6 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
-        cd ../nextalk
+        cd ..
         ls
         python manage.py test
