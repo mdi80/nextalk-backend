@@ -114,3 +114,13 @@ class Test(APIView):
 
     def get(self, request):
         return Response(status=status.HTTP_200_OK)
+
+
+class GetTikect(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        
+
+        return Response(status=status.HTTP_200_OK)

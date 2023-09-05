@@ -13,10 +13,12 @@ class TokenAuthMiddlewareStack:
 
     def __call__(self, scope, receive, send):
         headers = dict(scope["headers"])
+        print(scope["headers"])
         if b"authorization" in headers:
             try:
                 token_name, token_key = headers[b"authorization"].decode().split()
                 if token_name == "Token":
+                    print("here")
                     token = AuthToken.objects.get(key=token_key)
                     scope["user"] = token.user
             except AuthToken.DoesNotExist:
