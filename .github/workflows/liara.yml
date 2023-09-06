@@ -16,5 +16,6 @@ jobs:
         env:
           LIARA_TOKEN: ${{ secrets.LIARA_API_TOKEN }}
         run: |
+          cd ../nextalk-backend/nextalk
           npm i -g @liara/cli@4
           liara deploy --app="mdi80" --api-token="$LIARA_TOKEN" --detach

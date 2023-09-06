@@ -82,7 +82,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = "nextalk.wsgi.application"
+# WSGI_APPLICATION = "nextalk.wsgi.application"
 ASGI_APPLICATION = "nextalk.asgi.application"
 
 
