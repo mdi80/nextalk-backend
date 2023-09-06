@@ -83,6 +83,15 @@ TEMPLATES = [
     },
 ]
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": ["redis://:GnfWGRqKWSKakorOXlKRIuim@billy.iran.liara.ir:33405/0"]
+        },
+    },
+}
+
 ASGI_APPLICATION = "nextalk.asgi.application"
 WSGI_APPLICATION = "nextalk.wsgi.application"
 
