@@ -82,8 +82,8 @@ TEMPLATES = [
     },
 ]
 
-# WSGI_APPLICATION = "nextalk.wsgi.application"
 ASGI_APPLICATION = "nextalk.asgi.application"
+WSGI_APPLICATION = "nextalk.wsgi.application"
 
 
 # Database

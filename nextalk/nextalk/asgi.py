@@ -22,6 +22,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "nextalk.settings")
 application = ProtocolTypeRouter(
     {
         "http": get_asgi_application(),
-        "websocket": URLRouter(websocket_urlpatterns),
+        "websocket": AllowedHostsOriginValidator(
+            TokenAuthMiddlewareStack(URLRouter(websocket_urlpatterns))
+        ),
     }
 )
