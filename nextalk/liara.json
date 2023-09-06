@@ -1,4 +1,7 @@
 {
+    "django": {
+        "pythonVersion": "3.10.5"
+    },
     "disks": [
         {
             "name": "sqlite-db",
