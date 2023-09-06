@@ -70,10 +70,7 @@ class CheckSms(APIView):
 
             if True:  # checkSmsCode(number, code):
                 phone_key = binascii.hexlify(os.urandom(20)).decode()
-                # cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
-                models.PhoneTokenTempModel.objects.create(
-                    phone_key=phone_key, phone=number
-                )
+                cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
                 data = {"key": phone_key}
                 if User.objects.filter(phone=number).exists():
                     user = User.objects.filter(phone=number).first()
@@ -105,7 +102,10 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
 
     def create(self, request):
-        return super().create(request)
+        try:
+            return super().create(request)
+        except Exception as e:
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class Test(APIView):
@@ -121,6 +121,4 @@ class GetTikect(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        
-
         return Response(status=status.HTTP_200_OK)

@@ -17,8 +17,8 @@ class CustomUserManager(BaseUserManager):
     def create_user(self, phone_key, **extra_fields):
         if not phone_key:
             raise ValueError("The phone field must be set")
-        # cache.get("auth " + phone_key)
-        phone = PhoneTokenTempModel.objects.get(phone_key=str(phone_key)).phone
+        phone = cache.get("auth " + phone_key)
+
         if phone is None:
             raise ValueError("phone token is expired!")
 
@@ -144,8 +144,3 @@ class User(CustomUserAbstract, PermissionsMixin):
 
     def __str__(self):
         return f"{self.phone}"
-
-
-class PhoneTokenTempModel(models.Model):
-    phone_key = models.CharField(max_length=40, primary_key=True)
-    phone = models.CharField(max_length=17)

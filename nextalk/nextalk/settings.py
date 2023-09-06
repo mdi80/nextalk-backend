@@ -152,8 +152,9 @@ SMS_AUTH = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://127.0.0.1:6379/1",  # Change this to your Redis server address
+        "LOCATION": "redis://billy.iran.liara.ir:33405/1",  # Change this to your Redis server address
         "OPTIONS": {
+            "PASSWORD": "GnfWGRqKWSKakorOXlKRIuim",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }

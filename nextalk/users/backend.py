@@ -2,7 +2,6 @@ from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.conf import settings
-from .models import PhoneTokenTempModel
 
 
 class PhoneBackend(ModelBackend):
@@ -15,14 +14,8 @@ class PhoneBackend(ModelBackend):
                 except:
                     return None
         else:
-            # phone = cache.get("auth " + phone_token)
-            # cache.delete("auth " + phone_token)
-            try:
-                m = PhoneTokenTempModel.objects.get(phone_key=phone_token)
-                phone = m.phone
-                m.delete()
-            except:
-                phone = None
+            phone = cache.get("auth " + phone_token)
+            cache.delete("auth " + phone_token)
 
         if phone is not None:
             try:
