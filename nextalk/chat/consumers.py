@@ -8,6 +8,7 @@ class Client(AsyncWebsocketConsumer):
         # Join room group
 
         # print(self.)
+            
         await self.accept()
 
     async def disconnect(self, close_code):
