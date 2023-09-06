@@ -1,6 +1,6 @@
 {
     "django": {
-        "pythonVersion": "3.10.5"
+        "pythonVersion": "3.10"
     },
     "disks": [
         {
