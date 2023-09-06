@@ -1,2 +1,3 @@
 /.vscode
 /myenv
+./nextalk/db/db.sqlite3
