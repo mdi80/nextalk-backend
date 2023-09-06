@@ -140,7 +140,7 @@ class User(CustomUserAbstract, PermissionsMixin):
     objects = CustomUserManager()
 
     USERNAME_FIELD = "phone"
-    REQUIRED_FIELDS = ["first_name", "last_name"]
+    REQUIRED_FIELDS = ["firstname", "lastname"]
 
     def __str__(self):
         return f"{self.phone}"
