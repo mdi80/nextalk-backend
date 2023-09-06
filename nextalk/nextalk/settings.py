@@ -93,7 +93,7 @@ CHANNEL_LAYERS = {
 }
 
 ASGI_APPLICATION = "nextalk.asgi.application"
-WSGI_APPLICATION = "nextalk.wsgi.application"
+# WSGI_APPLICATION = "nextalk.wsgi.application"
 
 
 # Database
