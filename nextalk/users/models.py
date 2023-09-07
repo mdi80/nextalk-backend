@@ -144,3 +144,9 @@ class User(CustomUserAbstract, PermissionsMixin):
 
     def __str__(self):
         return f"{self.phone}"
+
+
+class Ticket(models.Model):
+    ticket = models.CharField(max_length=17, primary_key=True)
+    token = models.ForeignKey(AuthToken, on_delete=models.CASCADE)
+    ip = models.GenericIPAddressField()
