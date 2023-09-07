@@ -48,11 +48,13 @@ class SendSms(APIView):
             number = body["phone"]
             try:
                 sendSms(number)
-            except:
-                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            except Exception as e:
+                print(str(e))
+                return Response(data=str(e), status=status.HTTP_406_NOT_ACCEPTABLE)
 
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
+            print(str(e))
             return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -86,10 +88,12 @@ class CheckSms(APIView):
                     status=status.HTTP_200_OK,
                 )
             else:
-                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+                return Response(
+                    data="code wrong", status=status.HTTP_406_NOT_ACCEPTABLE
+                )
         except Exception as e:
             print(str(e))
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(ModelViewSet):
@@ -103,6 +107,7 @@ class UserViewSet(ModelViewSet):
         try:
             return super().create(request)
         except Exception as e:
+            print(str(e))
             return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
