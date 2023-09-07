@@ -23,12 +23,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-@5wsjrr&3uw(@kxpldp_8ik83n=wg87-=_o827mnb3im=t!jr4"
-
+SECRET_KEY = os.getenv("SECRET_KEY")
+REDIS_PASS = os.getenv("REDIS_PASS")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["localhost", "mdinz.ir", "127.0.0.1"]
 
 
 # Application definition
@@ -86,14 +86,11 @@ TEMPLATES = [
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": ["redis://:GnfWGRqKWSKakorOXlKRIuim@billy.iran.liara.ir:33405/0"]
-        },
+        "CONFIG": {"hosts": [f"redis://:{REDIS_PASS}@redis-nextalk:6379/0"]},
     },
 }
 
 ASGI_APPLICATION = "nextalk.asgi.application"
-# WSGI_APPLICATION = "nextalk.wsgi.application"
 
 
 # Database
@@ -153,18 +150,17 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 SMS_AUTH = {
-    "ACCOUNT_SID": "AC076448db1aeca112e3bb338b73f6105d",
-    "AUTH_TOKEN": "dd28bb7ea3ceb93596196d9e3fcdde99",
-    "VERIFY_SID": "VA17090d404d0c670c12afa0ece9a3bdcc",
+    "ACCOUNT_SID": os.getenv("TWILIO_ACCOUNT_SID"),
+    "AUTH_TOKEN": os.getenv("TWILIO_AUTH_TOKEN"),
+    "VERIFY_SID": os.getenv("TWILIO_VERIFY_SID"),
 }
 
 
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://billy.iran.liara.ir:33405/1",  # Change this to your Redis server address
+        "LOCATION": f"redis://:{REDIS_PASS}@redis-nextalk:6379/1",  # Change this to your Redis server address
         "OPTIONS": {
-            "PASSWORD": "GnfWGRqKWSKakorOXlKRIuim",
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
