@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
+
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
 
 # from . import run_celery
 
@@ -23,7 +28,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-@5wsjrr&3uw(@kxpldp_8ik83n=wg87-=_o827mnb3im=t!jr4"
+SECRET_KEY = env("SECRET_KEY")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -87,7 +93,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": ["redis://:GnfWGRqKWSKakorOXlKRIuim@billy.iran.liara.ir:33405/0"]
+            "hosts": [f"redis://:{env('REDIS_PASS')}@billy.iran.liara.ir:33405/0"]
         },
     },
 }
@@ -153,9 +159,9 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = "users.User"
 
 SMS_AUTH = {
-    "ACCOUNT_SID": "AC076448db1aeca112e3bb338b73f6105d",
-    "AUTH_TOKEN": "dd28bb7ea3ceb93596196d9e3fcdde99",
-    "VERIFY_SID": "VA17090d404d0c670c12afa0ece9a3bdcc",
+    "ACCOUNT_SID": env("TWILIO_ACCOUNT_SID"),
+    "AUTH_TOKEN": env("TWILIO_AUTH_TOKEN"),
+    "VERIFY_SID": env("TWILIO_VERIFY_SID"),
 }
 
 
@@ -164,7 +170,7 @@ CACHES = {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://billy.iran.liara.ir:33405/1",  # Change this to your Redis server address
         "OPTIONS": {
-            "PASSWORD": "GnfWGRqKWSKakorOXlKRIuim",
+            "PASSWORD": env("REDIS_PASS"),
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },
     }
