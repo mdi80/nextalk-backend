@@ -32,7 +32,6 @@ class LoginView(KnoxLoginView):
     permission_classes = (AllowAny,)
 
     def post(self, request, format=None):
-        print(request.data)
         serializer = AuthTokenSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data["user"]
@@ -49,14 +48,16 @@ class SendSms(APIView):
         try:
             body = json.loads(request.body)
             number = body["phone"]
-            # try:
-            #     # sendSms(number)
-            # except:
-            # return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+            try:
+                sendSms(number)
+            except Exception as e:
+                print(str(e))
+                return Response(data=str(e), status=status.HTTP_406_NOT_ACCEPTABLE)
+
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
             print(str(e))
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class CheckSms(APIView):
@@ -70,7 +71,7 @@ class CheckSms(APIView):
             number = body["phone"]
             code = body["code"]
 
-            if True:  # checkSmsCode(number, code):
+            if checkSmsCode(number, code):
                 phone_key = binascii.hexlify(os.urandom(20)).decode()
                 cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
                 data = {"key": phone_key}
@@ -81,7 +82,6 @@ class CheckSms(APIView):
                     data["lastname"] = user.lastname
                     if user.userid:
                         data["username"] = user.userid
-
                 else:
                     data["new"] = True
 
@@ -90,10 +90,12 @@ class CheckSms(APIView):
                     status=status.HTTP_200_OK,
                 )
             else:
-                return Response(status=status.HTTP_406_NOT_ACCEPTABLE)
+                return Response(
+                    data="code wrong", status=status.HTTP_406_NOT_ACCEPTABLE
+                )
         except Exception as e:
             print(str(e))
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
 class UserViewSet(ModelViewSet):
@@ -107,6 +109,7 @@ class UserViewSet(ModelViewSet):
         try:
             return super().create(request)
         except Exception as e:
+            print(str(e))
             return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
