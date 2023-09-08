@@ -22,16 +22,18 @@ def del_ticket(token: AuthToken):
 
 class Client(AsyncWebsocketConsumer):
     async def connect(self):
-        # Join room group
+        # Join room
         forwarded_for = (
-            self.scope.get("headers", {}).get(b"x-forwarded-for", b"").decode("utf-8")
+            dict(self.scope.get("headers", {}))
+            .get(b"x-forwarded-for", b"")
+            .decode("utf-8")
         )
         client_ip = forwarded_for.split(",")[0].strip()
-
-        print(dict(self.scope["client"][0]))
+        print(client_ip)
         self.scope["token"] = await get_token(
             self.scope["query_string"].decode(),
-            self.scope["client"][0],
+            # self.scope["client"][0], # This is for local host that is not behind a proxy
+            client_ip,
         )
         await del_ticket(self.scope["token"])
 
