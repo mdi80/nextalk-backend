@@ -1,9 +1,17 @@
 from channels.auth import AuthMiddlewareStack
 from knox.models import AuthToken
 from django.contrib.auth.models import AnonymousUser
+from channels.db import database_sync_to_async
+
+from users.models import Ticket
 
 
-class TokenAuthMiddlewareStack:
+@database_sync_to_async
+def get_user(ticket):
+    return Ticket.objects.get(ticket=ticket).token.user
+
+
+class TokenAuthMiddleware:
     """
     Token authorization middleware for Django Channels 2
     """
@@ -11,19 +19,12 @@ class TokenAuthMiddlewareStack:
     def __init__(self, inner):
         self.inner = inner
 
-    def __call__(self, scope, receive, send):
-        headers = dict(scope["headers"])
-        print(scope["headers"])
-        if b"authorization" in headers:
-            try:
-                token_name, token_key = headers[b"authorization"].decode().split()
-                if token_name == "Token":
-                    print("here")
-                    token = AuthToken.objects.get(key=token_key)
-                    scope["user"] = token.user
-            except AuthToken.DoesNotExist:
-                scope["user"] = AnonymousUser()
+    async def __call__(self, scope, receive, send):
+        ticket = scope["query_string"]
+
+        scope["user"] = await get_user(scope["query_string"].decode())
+        print(scope["user"])
         return self.inner(scope, receive, send)
 
 
-# TokenAuthMiddlewareStack = lambda inner: TokenAuthMiddleware(AuthMiddlewareStack(inner))
+TokenAuthMiddlewareStack = lambda inner: TokenAuthMiddleware(AuthMiddlewareStack(inner))

@@ -26,7 +26,12 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Run Tests
+      env:
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_VERIFY_SID: ${{ secrets.TWILIO_VERIFY_SID }}
+          REDIS_PASS: ${{ secrets.REDIS_PASS }}
       run: |
         cd ../nextalk-backend/nextalk
-        ls
         python manage.py test

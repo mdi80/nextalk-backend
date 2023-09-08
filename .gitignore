@@ -1,2 +1,6 @@
 /.vscode
 /myenv
+/nextalk/*/__pycache__
+/nextalk/*/migrations/__pycache__
+/nextalk/db
+/nextalk/nextalk/.env

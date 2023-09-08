@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
+
+# Initialise environment variables
+env = environ.Env()
+environ.Env.read_env()
 
 # from . import run_celery
 
@@ -23,12 +28,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 REDIS_PASS = os.getenv("REDIS_PASS")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["localhost", "mdinz.ir", "127.0.0.1"]
+ALLOWED_HOSTS = ["localhost", "mdinz.ir", "127.0.0.1", "10.0.2.2"]
 
 
 # Application definition
@@ -86,7 +92,7 @@ TEMPLATES = [
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {"hosts": [f"redis://:{REDIS_PASS}@redis-nextalk:6379/0"]},
+        "CONFIG": {"hosts": [f"redis://:{REDIS_PASS}@billy.iran.liara.ir:33405/0"]},
     },
 }
 
@@ -159,7 +165,7 @@ SMS_AUTH = {
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": f"redis://:{REDIS_PASS}@redis-nextalk:6379/1",  # Change this to your Redis server address
+        "LOCATION": f"redis://:{REDIS_PASS}@billy.iran.liara.ir:33405/1",  # Change this to your Redis server address
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         },

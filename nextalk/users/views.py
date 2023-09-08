@@ -18,12 +18,14 @@ from rest_framework.permissions import IsAuthenticated
 
 from knox.auth import TokenAuthentication
 from knox.views import LoginView as KnoxLoginView
+from knox.models import AuthToken
 
 from .serializers import AuthTokenSerializer, UserSerializer
 from .verify import sendSms, checkSmsCode
 from .backend import PhoneBackend
 from .models import User
 from . import models
+from . import utils
 
 
 class LoginView(KnoxLoginView):
@@ -111,17 +113,22 @@ class UserViewSet(ModelViewSet):
             return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
 
-class Test(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
-
-    def get(self, request):
-        return Response(status=status.HTTP_200_OK)
-
-
 class GetTikect(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        return Response(status=status.HTTP_200_OK)
+        user, authToken = TokenAuthentication().authenticate(request)
+        ip_address = utils.get_client_ip(request)
+
+        if models.Ticket.objects.filter(token=authToken).exists():
+            ticket_obj = models.Ticket.objects.filter(token=authToken).first()
+            ticket_obj.ip = ip_address  # Update ip address
+            ticket_obj.save()
+
+            ticket = ticket_obj.ticket
+        else:
+            ticket = binascii.hexlify(os.urandom(10)).decode()
+            models.Ticket(ticket=ticket, token=authToken, ip=ip_address).save()
+
+        return Response(data={"ticket": ticket}, status=status.HTTP_200_OK)

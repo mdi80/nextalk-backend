@@ -17,5 +17,5 @@ urlpatterns = [
     path(r"logoutall/", knox_views.LogoutAllView.as_view(), name="knox_logoutall"),
     path(r"verify/", views.SendSms.as_view(), name="sendsms"),
     path(r"check-code/", views.CheckSms.as_view(), name="checkcode"),
-    path(r"test/", views.Test.as_view(), name="test"),
+    path(r"get-ticket/", views.GetTikect.as_view(), name="get-ticket"),
 ]
