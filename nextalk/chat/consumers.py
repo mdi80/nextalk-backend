@@ -6,15 +6,6 @@ from users.models import Ticket
 from knox.models import AuthToken
 
 
-def get_client_ip(request):
-    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
-    if x_forwarded_for:
-        ip = x_forwarded_for.split(",")[0]
-    else:
-        ip = request.META.get("REMOTE_ADDR")
-    return ip
-
-
 @database_sync_to_async
 def get_token(ticket, client_ip):
     t = Ticket.objects.get(ticket=ticket)
@@ -32,7 +23,12 @@ def del_ticket(token: AuthToken):
 class Client(AsyncWebsocketConsumer):
     async def connect(self):
         # Join room group
-        print(dict(self.scope["headers"]))  
+        forwarded_for = (
+            self.scope.get("headers", {}).get(b"x-forwarded-for", b"").decode("utf-8")
+        )
+        client_ip = forwarded_for.split(",")[0].strip()
+
+        print(dict(self.scope["client"][0]))
         self.scope["token"] = await get_token(
             self.scope["query_string"].decode(),
             self.scope["client"][0],
