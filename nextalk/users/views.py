@@ -132,3 +132,17 @@ class GetTikect(APIView):
             models.Ticket(ticket=ticket, token=authToken, ip=ip_address).save()
 
         return Response(data={"ticket": ticket}, status=status.HTTP_200_OK)
+
+
+class CheckUsername(APIView):
+    # authentication_classes = (,)
+    permission_classes = (AllowAny,)
+
+    def post(self, request):
+        try:
+            username = json.loads(request.body).get("username")
+            exists = User.objects.filter(userid=username).exists()
+            return Response(data={"exists": exists})
+        except Exception as e:
+            print(str(e))
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)

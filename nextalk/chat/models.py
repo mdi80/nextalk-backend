@@ -1,5 +1,6 @@
 from django.db import models
 from users.models import User
+from knox.models import AuthToken
 
 # Create your models here.
 
@@ -31,3 +32,9 @@ class FileField(models.Model):
     attachedType = models.IntegerField(default=1, choices=FILES_TYPE)
     FileField = models.FileField(upload_to="chatfiles")
     size = models.FloatField(default=0)
+
+
+class ClientConsumers(models.Model):
+    channel_name = models.CharField(max_length=100, primary_key=True)
+    token = models.OneToOneField(AuthToken, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
