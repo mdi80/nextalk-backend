@@ -127,7 +127,6 @@ class User(CustomUserAbstract, PermissionsMixin):
         error_messages={
             "unique": _("A user with that userid already exists."),
         },
-        null=True,
     )
     firstname = models.CharField(max_length=30)
     lastname = models.CharField(max_length=30)

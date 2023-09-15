@@ -18,4 +18,6 @@ urlpatterns = [
     path(r"verify/", views.SendSms.as_view(), name="sendsms"),
     path(r"check-code/", views.CheckSms.as_view(), name="checkcode"),
     path(r"get-ticket/", views.GetTikect.as_view(), name="get-ticket"),
+    path(r"check-username/", views.CheckUsername.as_view(), name="checkusername"),
+    path(r"get-user-info/", views.GetUserInfo.as_view(), name="getuserinfo"),
 ]

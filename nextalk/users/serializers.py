@@ -53,3 +53,31 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create_user(**validated_data)
 
         return user
+
+
+class UserInfoSerializer(serializers.ModelSerializer):
+    chats = serializers.SerializerMethodField()
+    username = serializers.CharField(source="userid")
+    lastActiveDateTime = serializers.SerializerMethodField()
+    imagePath = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            "firstname",
+            "lastname",
+            "phone",
+            "username",
+            "lastActiveDateTime",
+            "chats",
+            "imagePath",
+        ]
+
+    def get_chats(self, obj):
+        return []
+
+    def get_lastActiveDateTime(self, obj):
+        return "19:02"
+
+    def get_imagePath(self, obj):
+        return "imagePath"

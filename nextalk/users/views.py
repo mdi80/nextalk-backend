@@ -20,7 +20,7 @@ from knox.auth import TokenAuthentication
 from knox.views import LoginView as KnoxLoginView
 from knox.models import AuthToken
 
-from .serializers import AuthTokenSerializer, UserSerializer
+from .serializers import AuthTokenSerializer, UserSerializer, UserInfoSerializer
 from .verify import sendSms, checkSmsCode
 from .backend import PhoneBackend
 from .models import User
@@ -49,7 +49,7 @@ class SendSms(APIView):
             body = json.loads(request.body)
             number = body["phone"]
             try:
-                sendSms(number)
+                pass  # sendSms(number)
             except Exception as e:
                 print(str(e))
                 return Response(data=str(e), status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -71,7 +71,7 @@ class CheckSms(APIView):
             number = body["phone"]
             code = body["code"]
 
-            if checkSmsCode(number, code):
+            if True:  # checkSmsCode(number, code):
                 phone_key = binascii.hexlify(os.urandom(20)).decode()
                 cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
                 data = {"key": phone_key}
@@ -132,3 +132,35 @@ class GetTikect(APIView):
             models.Ticket(ticket=ticket, token=authToken, ip=ip_address).save()
 
         return Response(data={"ticket": ticket}, status=status.HTTP_200_OK)
+
+
+class CheckUsername(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            username = json.loads(request.body).get("username")
+            exists = User.objects.filter(userid=username).exists()
+            return Response(data={"exists": exists})
+        except Exception as e:
+            print(str(e))
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetUserInfo(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            username = json.loads(request.body).get("username")
+            if User.objects.filter(userid=username).exists():
+                user = User.objects.get(userid=username)
+                return Response(data=UserInfoSerializer(user).data)
+            else:
+                return Response(data="No User!", status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            print(str(e))
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
