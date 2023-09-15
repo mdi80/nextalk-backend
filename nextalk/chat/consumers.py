@@ -6,16 +6,17 @@ from .models import ClientConsumers, ChatModel
 from .serializers import MessageSerializer
 from users.models import Ticket, User
 from knox.models import AuthToken
+from datetime import datetime, timezone
 
 
 @database_sync_to_async
 def save_message(message: str, to_username: str, from_token: AuthToken):
     chat = ChatModel()
-    chat.to_user = User.objects.get(to_username)
+    chat.to_user = User.objects.get(userid=to_username)
     chat.from_user = from_token.user
     chat.message = message
     chat.save()
-    return chat.id
+    return chat.id, chat.send_date.timestamp()
 
 
 @database_sync_to_async
@@ -88,7 +89,7 @@ class Client(AsyncWebsocketConsumer):
         await self.accept()
 
         unsend_messages = await get_unsend_messages(self.scope["token"])
-        print(unsend_messages)
+
         if not len(unsend_messages) == 0:
             await self.channel_layer.send(
                 self.channel_name,
@@ -112,32 +113,40 @@ class Client(AsyncWebsocketConsumer):
 
     async def load_unsend_messages(self, data):
         # seld.channel_layer.
-        await self.send(data["message"])
+        await self.send(
+            json.dumps({"type": "sync_new_messages", "data": data["message"]})
+        )
 
     async def message_receive(self, data):
         # seld.channel_layer.
-        await self.send(data["message"])
+        await self.send(json.dumps({"type": "new_message", "data": data["data"]}))
 
     async def _send_message(self, data):
         message = data["message"]
         username = data["username"]
         messageId = data["messageId"]
-        print("er")
-        new_id = await save_message(message, username, self.scope["token"])
 
-        self.send(
+        new_id, send_date = await save_message(message, username, self.scope["token"])
+
+        await self.send(
             json.dumps(
                 {
-                    "type": "confirm-receive-message",
-                    data: {"id": messageId, "newId": new_id},
+                    "type": "confirm-save-message",
+                    "data": {"id": messageId, "newId": new_id},
                 }
             )
         )
-
+        message_data = {
+            "id": new_id,
+            "message": message,
+            "from": username,
+            "data": send_date,
+        }
+        print(message_data)
         channels = await get_channels_by_username(username)
         for channel in channels:
             print("send to " + channel)
             await self.channel_layer.send(
                 channel,
-                {"type": "message.receive", "message": message},
+                {"type": "message.receive", "data": message_data},
             )

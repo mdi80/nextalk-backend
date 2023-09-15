@@ -20,7 +20,7 @@ from knox.auth import TokenAuthentication
 from knox.views import LoginView as KnoxLoginView
 from knox.models import AuthToken
 
-from .serializers import AuthTokenSerializer, UserSerializer
+from .serializers import AuthTokenSerializer, UserSerializer, UserInfoSerializer
 from .verify import sendSms, checkSmsCode
 from .backend import PhoneBackend
 from .models import User
@@ -135,14 +135,32 @@ class GetTikect(APIView):
 
 
 class CheckUsername(APIView):
-    # authentication_classes = (,)
-    permission_classes = (AllowAny,)
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
 
     def post(self, request):
         try:
             username = json.loads(request.body).get("username")
             exists = User.objects.filter(userid=username).exists()
             return Response(data={"exists": exists})
+        except Exception as e:
+            print(str(e))
+            return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
+
+
+class GetUserInfo(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = (IsAuthenticated,)
+
+    def post(self, request):
+        try:
+            username = json.loads(request.body).get("username")
+            if User.objects.filter(userid=username).exists():
+                user = User.objects.get(userid=username)
+                return Response(data=UserInfoSerializer(user).data)
+            else:
+                return Response(data="No User!", status=status.HTTP_400_BAD_REQUEST)
+
         except Exception as e:
             print(str(e))
             return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)

@@ -20,9 +20,9 @@ class ChatModel(models.Model):
     message = models.CharField(max_length=10000, blank=True)
     send_date = models.DateTimeField(auto_now_add=True)
     received = models.BooleanField(default=False)
-    received_date = models.DateTimeField(blank=True)
+    received_date = models.DateTimeField(null=True, blank=True)
     seen = models.BooleanField(default=False)
-    seen_date = models.DateTimeField(blank=True)
+    seen_date = models.DateTimeField(null=True, blank=True)
     attachedFile = models.ForeignKey(
         "FileField", on_delete=models.CASCADE, null=True, blank=True
     )

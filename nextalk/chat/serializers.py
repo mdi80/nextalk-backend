@@ -16,5 +16,4 @@ class MessageSerializer(serializers.ModelSerializer):
             "message",
             "send_date",
             "attachedFile",
-            "date_joined",
         ]
