@@ -108,7 +108,6 @@ class Client(AsyncWebsocketConsumer):
 
         rec_type = data["type"]
         if rec_type == "send_message":
-            print(rec_type)
             await self._send_message(data)
 
     async def load_unsend_messages(self, data):
@@ -139,7 +138,7 @@ class Client(AsyncWebsocketConsumer):
         message_data = {
             "id": new_id,
             "message": message,
-            "from": username,
+            "from": self.scope["token"].user.userid,
             "data": send_date,
         }
         print(message_data)
