@@ -7,6 +7,8 @@ from knox.models import AuthToken
 
 from .models import User
 
+import datetime
+
 
 class AuthTokenSerializer(serializers.Serializer):
     phone_token = serializers.CharField(label=_("Phone Token"), write_only=True)
@@ -77,7 +79,7 @@ class UserInfoSerializer(serializers.ModelSerializer):
         return []
 
     def get_lastActiveDateTime(self, obj):
-        return "19:02"
+        return datetime.datetime.now().timestamp() - 18 * 60 * 60
 
     def get_imagePath(self, obj):
         return "imagePath"

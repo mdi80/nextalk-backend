@@ -6,7 +6,6 @@ from .models import ClientConsumers, ChatModel
 from .serializers import MessageSerializer
 from users.models import Ticket, User
 from knox.models import AuthToken
-from datetime import datetime, timezone
 
 
 @database_sync_to_async
@@ -99,7 +98,6 @@ class Client(AsyncWebsocketConsumer):
         await self.accept()
 
         unsend_messages = await get_unsend_messages(self.scope["token"])
-
         if not len(unsend_messages) == 0:
             await self.channel_layer.send(
                 self.channel_name,
@@ -127,6 +125,7 @@ class Client(AsyncWebsocketConsumer):
     # Functions for Channel layer
     async def load_unsend_messages(self, data):
         # seld.channel_layer.
+        print(data)
         await self.send(
             json.dumps({"type": "sync_new_messages", "data": data["message"]})
         )
@@ -155,7 +154,7 @@ class Client(AsyncWebsocketConsumer):
             "id": new_id,
             "message": message,
             "from": self.scope["token"].user.userid,
-            "data": send_date,
+            "date": send_date,
         }
         print(message_data)
         channels = await get_channels_by_username(username)

@@ -8,7 +8,8 @@ from .models import ChatModel
 
 
 class MessageSerializer(serializers.ModelSerializer):
-    from_username = serializers.SerializerMethodField(source="userid")
+    from_username = serializers.SerializerMethodField()
+    date = serializers.SerializerMethodField()
 
     class Meta:
         model = ChatModel
@@ -17,9 +18,12 @@ class MessageSerializer(serializers.ModelSerializer):
             "to_user",
             "from_username",
             "message",
-            "send_date",
+            "date",
             "attachedFile",
         ]
 
     def get_from_username(self, obj):
         return obj.from_user.userid
+
+    def get_date(self, obj):
+        return obj.send_date.timestamp()
