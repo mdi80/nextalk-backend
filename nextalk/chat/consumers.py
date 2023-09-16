@@ -20,6 +20,16 @@ def save_message(message: str, to_username: str, from_token: AuthToken):
 
 
 @database_sync_to_async
+def ack_message(ids):
+    print(ids)
+    for id in ids:
+        c = ChatModel.objects.get(id=id)
+        c.received = True
+        c.save()
+        pass
+
+
+@database_sync_to_async
 def get_unsend_messages(token: AuthToken):
     return MessageSerializer(
         ChatModel.objects.filter(to_user=token.user, received=False),
@@ -105,11 +115,16 @@ class Client(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         data = json.loads(text_data)
-
-        rec_type = data["type"]
+        rec_type = None
+        content = data["data"]
+        if "type" in data:
+            rec_type = data["type"]
         if rec_type == "send_message":
-            await self._send_message(data)
+            await self._send_message(content)
+        if rec_type == "ack_message":
+            await self._ack_message(content)
 
+    # Functions for Channel layer
     async def load_unsend_messages(self, data):
         # seld.channel_layer.
         await self.send(
@@ -120,6 +135,7 @@ class Client(AsyncWebsocketConsumer):
         # seld.channel_layer.
         await self.send(json.dumps({"type": "new_message", "data": data["data"]}))
 
+    # Function for handeling messages from client
     async def _send_message(self, data):
         message = data["message"]
         username = data["username"]
@@ -149,3 +165,6 @@ class Client(AsyncWebsocketConsumer):
                 channel,
                 {"type": "message.receive", "data": message_data},
             )
+
+    async def _ack_message(self, data):
+        await ack_message(data)

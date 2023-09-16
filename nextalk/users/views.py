@@ -154,13 +154,19 @@ class GetUserInfo(APIView):
 
     def post(self, request):
         try:
-            username = json.loads(request.body).get("username")
-            if User.objects.filter(userid=username).exists():
-                user = User.objects.get(userid=username)
-                return Response(data=UserInfoSerializer(user).data)
-            else:
-                return Response(data="No User!", status=status.HTTP_400_BAD_REQUEST)
-
+            print(json.loads(request.body))
+            usernames = json.loads(request.body).get("usernames")
+            usernames_info = []
+            for username in usernames:
+                if User.objects.filter(userid=username).exists():
+                    user = User.objects.get(userid=username)
+                    usernames_info.append(user)
+                else:
+                    return Response(
+                        data=username + " not found!",
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+            return Response(data=UserInfoSerializer(usernames_info, many=True).data)
         except Exception as e:
             print(str(e))
             return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
