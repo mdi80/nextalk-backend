@@ -88,9 +88,6 @@ class Client(AsyncWebsocketConsumer):
         print(client_ip)
         self.scope["token"] = await get_token(
             self.scope["query_string"].decode(),
-            # self.scope["client"][
-            #     0
-            # ],  # This is for local host that is not behind a proxy
             client_ip,
         )
         await del_ticket(self.scope["token"])
