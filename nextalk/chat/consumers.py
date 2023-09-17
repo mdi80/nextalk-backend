@@ -6,7 +6,6 @@ from .models import ClientConsumers, ChatModel
 from .serializers import MessageSerializer
 from users.models import Ticket, User
 from knox.models import AuthToken
-from datetime import datetime, timezone
 
 
 @database_sync_to_async
@@ -17,6 +16,16 @@ def save_message(message: str, to_username: str, from_token: AuthToken):
     chat.message = message
     chat.save()
     return chat.id, chat.send_date.timestamp()
+
+
+@database_sync_to_async
+def ack_message(ids):
+    print(ids)
+    for id in ids:
+        c = ChatModel.objects.get(id=id)
+        c.received = True
+        c.save()
+        pass
 
 
 @database_sync_to_async
@@ -86,7 +95,6 @@ class Client(AsyncWebsocketConsumer):
         await self.accept()
 
         unsend_messages = await get_unsend_messages(self.scope["token"])
-
         if not len(unsend_messages) == 0:
             await self.channel_layer.send(
                 self.channel_name,
@@ -102,13 +110,19 @@ class Client(AsyncWebsocketConsumer):
     # Receive message from WebSocket
     async def receive(self, text_data):
         data = json.loads(text_data)
-
-        rec_type = data["type"]
+        rec_type = None
+        content = data["data"]
+        if "type" in data:
+            rec_type = data["type"]
         if rec_type == "send_message":
-            await self._send_message(data)
+            await self._send_message(content)
+        if rec_type == "ack_message":
+            await self._ack_message(content)
 
+    # Functions for Channel layer
     async def load_unsend_messages(self, data):
         # seld.channel_layer.
+        print(data)
         await self.send(
             json.dumps({"type": "sync_new_messages", "data": data["message"]})
         )
@@ -117,6 +131,7 @@ class Client(AsyncWebsocketConsumer):
         # seld.channel_layer.
         await self.send(json.dumps({"type": "new_message", "data": data["data"]}))
 
+    # Function for handeling messages from client
     async def _send_message(self, data):
         message = data["message"]
         username = data["username"]
@@ -136,7 +151,7 @@ class Client(AsyncWebsocketConsumer):
             "id": new_id,
             "message": message,
             "from": self.scope["token"].user.userid,
-            "data": send_date,
+            "date": send_date,
         }
         print(message_data)
         channels = await get_channels_by_username(username)
@@ -146,3 +161,6 @@ class Client(AsyncWebsocketConsumer):
                 channel,
                 {"type": "message.receive", "data": message_data},
             )
+
+    async def _ack_message(self, data):
+        await ack_message(data)
