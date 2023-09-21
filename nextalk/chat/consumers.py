@@ -104,6 +104,9 @@ class Client(AsyncWebsocketConsumer):
                 {"type": "load.unsend.messages", "message": unsend_messages},
             )
 
+        unconfirm_messages = await get_unsend_messages(self.scope["token"])
+
+
     async def disconnect(self, close_code):
         # Leave room group
         # await del_ticket(self.scope["token"])
@@ -120,6 +123,8 @@ class Client(AsyncWebsocketConsumer):
             await self._send_message(content)
         if rec_type == "ack_message":
             await self._ack_message(content)
+        if rec_type == "send_unsent_message":
+            await self._send_unsent_message(content)
 
     # Functions for Channel layer
     async def load_unsend_messages(self, data):
@@ -170,6 +175,18 @@ class Client(AsyncWebsocketConsumer):
         else:
             # Ack for self message because we know the client have thair own message
             await ack_message([new_id])
+
+    async def _send_unsent_message(self, all_mes):
+        # TODO Can make better performance
+        print(all_mes)
+        
+        for mes_data in all_mes:
+            message = mes_data["message"]
+            username = mes_data["username"]
+            messageId = mes_data["messageId"]
+
+            new_id, send_date = await save_message(message, username, mes_data["token"])
+            #Should send message with token in mes_data and send \\confirmation\\ for it
 
     async def _ack_message(self, data):
         await ack_message(data)
