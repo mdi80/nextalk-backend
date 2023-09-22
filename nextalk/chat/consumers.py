@@ -88,7 +88,10 @@ class Client(AsyncWebsocketConsumer):
         print(client_ip)
         self.scope["token"] = await get_token(
             self.scope["query_string"].decode(),
-            client_ip,
+            self.scope["client"][
+                0
+            ],  # This is for local host that is not behind a proxy
+            # client_ip,
         )
         await del_ticket(self.scope["token"])
         await save_channel(self.channel_name, self.scope["token"])
@@ -100,12 +103,12 @@ class Client(AsyncWebsocketConsumer):
                 self.channel_name,
                 {"type": "load.unsend.messages", "message": unsend_messages},
             )
+        
 
     async def disconnect(self, close_code):
         # Leave room group
         # await del_ticket(self.scope["token"])
         await delete_channel(self.channel_name)
-        pass
 
     # Receive message from WebSocket
     async def receive(self, text_data):
@@ -118,6 +121,8 @@ class Client(AsyncWebsocketConsumer):
             await self._send_message(content)
         if rec_type == "ack_message":
             await self._ack_message(content)
+        if rec_type == "send_unsent_message":
+            await self._send_unsent_message(content)
 
     # Functions for Channel layer
     async def load_unsend_messages(self, data):
@@ -147,20 +152,35 @@ class Client(AsyncWebsocketConsumer):
                 }
             )
         )
-        message_data = {
-            "id": new_id,
-            "message": message,
-            "from": self.scope["token"].user.userid,
-            "date": send_date,
-        }
-        print(message_data)
-        channels = await get_channels_by_username(username)
-        for channel in channels:
-            print("send to " + channel)
-            await self.channel_layer.send(
-                channel,
-                {"type": "message.receive", "data": message_data},
-            )
+
+        # If this is not a self message than send it to user
+        if not self.scope["token"].user.userid == username:
+            message_data = {
+                "id": new_id,
+                "message": message,
+                "from": self.scope["token"].user.userid,
+                "date": send_date,
+            }
+            # Get all clients of user that is active and send message to them
+            channels = await get_channels_by_username(username)
+
+            for channel in channels:
+                print("send to " + channel)
+                await self.channel_layer.send(
+                    channel,
+                    {"type": "message.receive", "data": message_data},
+                )
+        else:
+            # Ack for self message because we know the client have thair own message
+            await ack_message([new_id])
+
+    async def _send_unsent_message(self, all_mes):
+        # TODO Can make better performance
+        print(all_mes)
+
+        for mes_data in all_mes:
+            await self._send_message(mes_data)
+
 
     async def _ack_message(self, data):
         await ack_message(data)
