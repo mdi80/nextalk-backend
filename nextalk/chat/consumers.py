@@ -103,9 +103,7 @@ class Client(AsyncWebsocketConsumer):
                 self.channel_name,
                 {"type": "load.unsend.messages", "message": unsend_messages},
             )
-
-        unconfirm_messages = await get_unsend_messages(self.scope["token"])
-
+        
 
     async def disconnect(self, close_code):
         # Leave room group
@@ -179,14 +177,10 @@ class Client(AsyncWebsocketConsumer):
     async def _send_unsent_message(self, all_mes):
         # TODO Can make better performance
         print(all_mes)
-        
-        for mes_data in all_mes:
-            message = mes_data["message"]
-            username = mes_data["username"]
-            messageId = mes_data["messageId"]
 
-            new_id, send_date = await save_message(message, username, mes_data["token"])
-            #Should send message with token in mes_data and send \\confirmation\\ for it
+        for mes_data in all_mes:
+            await self._send_message(mes_data)
+
 
     async def _ack_message(self, data):
         await ack_message(data)
