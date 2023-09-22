@@ -49,7 +49,7 @@ class SendSms(APIView):
             body = json.loads(request.body)
             number = body["phone"]
             try:
-                pass  # sendSms?(number)
+                sendSms(number)
             except Exception as e:
                 print(str(e))
                 return Response(data=str(e), status=status.HTTP_406_NOT_ACCEPTABLE)
@@ -71,7 +71,7 @@ class CheckSms(APIView):
             number = body["phone"]
             code = body["code"]
 
-            if True:  # checkSmsCode(number, code):
+            if checkSmsCode(number, code):
                 phone_key = binascii.hexlify(os.urandom(20)).decode()
                 cache.set("auth " + phone_key, number, timeout=settings.CACHE_TTL_USER)
                 data = {"key": phone_key}
